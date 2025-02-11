@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="lab2" default="clover-report" basedir=".">
+
+    <!-- Define directories -->
+    <property name="src.main" value="src/main"/>
+    <property name="src.test" value="src/test"/>
+    <property name="bin.main" value="bin/main"/>
+    <property name="bin.test" value="bin/test"/>
+    <property name="lib" value="lib"/>
+    <property name="coverage.dir" value="coverage"/>
+    <property name="clover.jar" value="${lib}/clover.jar"/>
+
+    <!-- Clean Task -->
+    <target name="clean">
+        <echo message="Cleaning build directories..."/>
+        <delete dir="${bin.main}"/>
+        <delete dir="${bin.test}"/>
+        <delete dir="${coverage.dir}"/>
+    </target>
+
+    <!-- Clover Instrumentation -->
+    <target name="instrument" depends="clean">
+        <echo message="Instrumenting code with Clover..."/>
+        <taskdef resource="cloverlib.xml" classpath="${clover.jar}"/>
+        <clover-instr initstring="${coverage.dir}/clover.db" destdir="${bin.main}">
+            <fileset dir="${src.main}" includes="**/*.java"/>
+            <fileset dir="${src.test}" includes="**/*.java"/>
+        </clover-instr>
+    </target>
+
+    <!-- Compile Main Code -->
+    <target name="compile" depends="instrument">
+        <echo message="Compiling instrumented application source files..."/>
+        <mkdir dir="${bin.main}"/>
+        <javac srcdir="${bin.main}" destdir="${bin.main}" includeantruntime="false" debug="true">
+            <classpath>
+                <fileset dir="${lib}" includes="**/*.jar"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <!-- Compile Test Code -->
+    <target name="compile-tests" depends="compile">
+        <echo message="Compiling test source files..."/>
+        <mkdir dir="${bin.test}"/>
+        <javac srcdir="${src.test}" destdir="${bin.test}" includeantruntime="false" debug="true">
+            <classpath>
+                <pathelement path="${bin.main}"/>
+                <fileset dir="${lib}" includes="**/*.jar"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <!-- Run JUnit Tests with Clover Instrumentation -->
+    <target name="test" depends="compile-tests">
+        <echo message="Running JUnit tests with Clover coverage..."/>
+        <taskdef resource="cloverlib.xml" classpath="${clover.jar}"/>
+        <junit printsummary="yes" haltonfailure="yes">
+            <classpath>
+                <pathelement path="${bin.main}"/>
+                <pathelement path="${bin.test}"/>
+                <fileset dir="${lib}" includes="**/junit-*.jar"/>
+                <pathelement path="${clover.jar}"/>
+            </classpath>
+            <batchtest>
+                <fileset dir="${bin.test}">
+                    <include name="**/*Test.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+
+    <!-- Fixed Clover Report -->
+    <target name="clover-report" depends="test">
+        <echo message="Generating Clover HTML coverage report..."/>
+        <taskdef resource="cloverlib.xml" classpath="${clover.jar}"/>
+        <clover-report initstring="${coverage.dir}/clover.db">
+            <current outfile="coverage/index.html">
+                <format type="html"/>
+            </current>
+        </clover-report>
+    </target>
+
+</project>
