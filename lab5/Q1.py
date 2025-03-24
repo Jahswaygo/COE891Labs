@@ -11,7 +11,7 @@ def generate_truth_table():
 # Clause determination conditions
 def clause_determination():
     return {
-        "Clause a": "Determines p when (¬b ∨ c) is True.",
+        "Clause a": "Determines p when (¬b V c) is True.",
         "Clause ¬b": "Determines p when a is True and c is False.",
         "Clause c": "Determines p when a is True and b is True."
     }
@@ -33,3 +33,16 @@ def generate_coverage_pairs():
         },
         "RICC": "Same as GICC."
     }
+
+# Print the truth table
+def print_truth_table():
+    truth_table = generate_truth_table()
+    print("Truth Table:")
+    print("a      | b     | c       | p")
+    print("--------------------------")
+    for row in truth_table:
+        print(f"{row[0]:<6} | {row[1]:<6} | {row[2]:<6} | {row[3]}")
+
+# Call the function to print the truth table
+if __name__ == "__main__":
+    print_truth_table()

@@ -13,8 +13,8 @@ class TestQ2(unittest.TestCase):
     def test_def_use(self):
         def_use = get_def_use()
         self.assertEqual(def_use["1"], {"def": ["x"], "use": ["y"]})
-        self.assertEqual(def_use["10"], {"def": ["y"], "use": []})
-        self.assertEqual(def_use["End"], {"def": [], "use": []})
+        self.assertEqual(def_use["11"], {"def": ["y"], "use": []})
+        self.assertEqual(def_use["End"], {"def": [], "use": ["x", "y"]})
 
     # Test DU pairs
     def test_du_pairs(self):

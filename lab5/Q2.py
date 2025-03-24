@@ -2,57 +2,122 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 # Define the control flow graph (CFG) for the given program
+
+
+# Simulate the program execution and track visited nodes
+def simulate_program(x, y):
+    visited_nodes = []
+    visited_nodes.append("Start")  # Start of the program
+
+    # Node 1: int x = y;
+    visited_nodes.append("1")
+    x = y
+
+    # Node 2: check while condition (x < 100)
+    visited_nodes.append("2")
+    while x < 100:
+        # Node 3: Enter While loop
+        visited_nodes.append("3")
+        if x < y:
+            # Node 4: x <  y is true
+            visited_nodes.append("4")
+            x += 1
+            break
+        
+        # Node 5: Check for loop condition (int z = 1; z < x; z++)
+        visited_nodes.append("5")
+        for z in range(1, x):
+            # Node 6: for loop
+            visited_nodes.append("6")
+            x += z
+            # Node 5 (Loop back): Check for loop condition (int z = 1; z < x; z++)
+            visited_nodes.append("5")
+
+        # Node 7:check if condition (x > 5)
+        visited_nodes.append("7")
+        if x > 5:
+            # Node 8: x > 5 is true
+            visited_nodes.append("8")
+            y += 1
+        else:
+            # Node 9: x > 5 is false
+            visited_nodes.append("9")
+            y += 2
+
+        # Node 2: check while condition (x < 100)
+        visited_nodes.append("2")
+        
+    # Node 12: System.out.println(x + ',' + y);
+    visited_nodes.append("10")
+    print(f"{x}, {y}")
+
+    # End of the program
+    visited_nodes.append("End")
+    print(f"Visited Nodes: {visited_nodes}")
+    return visited_nodes
+
 def create_cfg():
-    G = nx.DiGraph()
+    """
+    Generates a simplified Control Flow Graph (CFG) for the power function.
+    """
+    cfg = nx.DiGraph()
+
+    # Nodes representing different parts of the program
+    cfg.add_nodes_from([
+        "Start","1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "End"
+    ])
+
+    # Edges representing control flow
     edges = [
-        ("Start", "1"), ("1", "2"), ("2", "3"), ("3", "4"), ("4", "5"),
-        ("5", "6"), ("6", "7"), ("7", "8"), ("8", "9"), ("9", "10"),
-        ("10", "End"), ("3", "End"), ("6", "8")
-    ]
-    G.add_edges_from(edges)
-    return G
-
-# Define def(n) and use(n) for each node
-def get_def_use():
-    return {
-        "1": {"def": ["x"], "use": ["y"]},
-        "2": {"def": [], "use": ["x"]},
-        "3": {"def": [], "use": ["x", "y"]},
-        "4": {"def": ["x"], "use": ["x"]},
-        "5": {"def": [], "use": []},
-        "6": {"def": ["z"], "use": ["x"]},
-        "7": {"def": ["x"], "use": ["x", "z"]},
-        "8": {"def": [], "use": ["x"]},
-        "9": {"def": ["y"], "use": ["x"]},
-        "10": {"def": ["y"], "use": []},
-        "End": {"def": [], "use": []},
-    }
-
-# Define DU pairs for each variable
-def get_du_pairs():
-    return {
-        "x": [("1", "2"), ("1", "3"), ("1", "4"), ("1", "6"), ("1", "8"), ("1", "9")],
-        "y": [("1", "3"), ("9", "10")],
-        "z": [("6", "7")],
-    }
-
-# Define infeasible test paths
-def get_infeasible_paths():
-    return [
-        ("3", "4", "5", "6", "8"),  # Path where "break" in node 5 is skipped
-        ("6", "7", "8", "9", "10"), # Path where loop in node 6 is skipped
+        ("Start","1"),
+        ("1", "2"),
+        ("2", "3"),  # while true
+        ("2", "10"),  # while false
+        ("3", "4"),  # if true
+        ("3", "5"),  # if false
+        ("4", "5"), 
+        ("5", "6"),  # for loop true
+        ("5", "7"),  # for loop false
+        ("6", "5"),  # Loop back
+        ("7", "8"),  # if true
+        ("7", "9"),  # if false
+        ("8", "2"),  # Loop back
+        ("9", "2"),  # Loop back
+        ("10", "End")
     ]
 
-# Define test sets for coverage
-def get_test_sets():
-    return {
-        "all_def_coverage": [
-            ("Start", "1", "2", "3", "End"),  # Covers all definitions
-        ],
-        "all_use_coverage": [
-            ("Start", "1", "2", "3", "4", "5", "6", "8", "9", "10", "End"),  # Covers all uses
-        ],
-        "all_du_paths_coverage": [
-            ("Start", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "End"),  # Covers all DU paths
-        ],
+    cfg.add_edges_from(edges)
+    return cfg
+
+def draw_cfg(cfg):
+    """
+    Draws the generated CFG using NetworkX and Matplotlib.
+    """
+    pos = nx.spring_layout(cfg)  # Position nodes
+    plt.figure(figsize=(10, 6))
+    nx.draw(cfg, pos, with_labels=True, node_color='lightblue', edge_color='black', font_size=10, node_size=2000)
+    
+    # Define edge labels
+    edge_labels = {
+        ("2", "3"): "while true",
+        ("2", "10"): "while false",
+        ("3", "4"): "if true",
+        ("3", "5"): "if false",
+        ("5", "6"): "for loop true",
+        ("5", "7"): "for loop false",
+        ("7", "8"): "if true",
+        ("7", "9"): "if false"
     }
+    
+    # Draw edge labels
+    nx.draw_networkx_edge_labels(cfg, pos, edge_labels=edge_labels, font_color='red')
+    
+    plt.title("Control Flow Graph")
+    plt.show()
+
+# Main function to print necessary outputs
+if __name__ == "__main__":
+    draw_cfg(create_cfg())  # Draw the CFG for the program
+    # Simulate the program with example inputs
+    print("\nSimulating Program Execution:")
+    simulate_program(50, 20)  # Example input values for x and y

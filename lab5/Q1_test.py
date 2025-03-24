@@ -28,7 +28,7 @@ class TestQ1(unittest.TestCase):
     def test_clause_determination(self):
         conditions = clause_determination()
         expected_conditions = {
-            "Clause a": "Determines p when (¬b ∨ c) is True.",
+            "Clause a": "Determines p when (¬b V c) is True.",
             "Clause ¬b": "Determines p when a is True and c is False.",
             "Clause c": "Determines p when a is True and b is True."
         }
