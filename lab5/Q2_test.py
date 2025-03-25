@@ -1,5 +1,6 @@
 import unittest
-from Q2 import create_cfg, get_def_use, get_du_pairs, get_infeasible_paths, get_test_sets
+from Q2 import create_cfg, simulate_program
+
 
 class TestQ2(unittest.TestCase):
     # Test the control flow graph (CFG)
@@ -9,32 +10,56 @@ class TestQ2(unittest.TestCase):
         self.assertTrue(G.has_edge("10", "End"))
         self.assertFalse(G.has_edge("1", "End"))
 
-    # Test def(n) and use(n)
-    def test_def_use(self):
-        def_use = get_def_use()
-        self.assertEqual(def_use["1"], {"def": ["x"], "use": ["y"]})
-        self.assertEqual(def_use["11"], {"def": ["y"], "use": []})
-        self.assertEqual(def_use["End"], {"def": [], "use": ["x", "y"]})
+    def test_all_def_coverage(self):
+        # Initialize a set to collect all unique visited nodes
+        unique_visited_nodes = set()
 
-    # Test DU pairs
-    def test_du_pairs(self):
-        du_pairs = get_du_pairs()
-        self.assertIn(("1", "2"), du_pairs["x"])
-        self.assertIn(("9", "10"), du_pairs["y"])
-        self.assertIn(("6", "7"), du_pairs["z"])
+        # Run the program with different inputs and collect visited nodes
+        for y in [1,10]:
+            visited_nodes = simulate_program(y)
+            unique_visited_nodes.update(visited_nodes)  # Add visited nodes to the set
 
-    # Test infeasible paths
-    def test_infeasible_paths(self):
-        infeasible_paths = get_infeasible_paths()
-        self.assertIn(("3", "4", "5", "6", "8"), infeasible_paths)
-        self.assertIn(("6", "7", "8", "9", "10"), infeasible_paths)
+        # Check if all required nodes are in the unique visited nodes
+        required_nodes = {"1", "4", "5", "6", "8", "9"}
+        self.assertTrue(required_nodes.issubset(unique_visited_nodes), 
+                        f"Missing nodes: {required_nodes - unique_visited_nodes}")
+        
+    def test_all_use_coverage(self):
+        # Initialize a set to collect all unique visited nodes
+        unique_visited_nodes = set()
 
-    # Test coverage test sets
-    def test_test_sets(self):
-        test_sets = get_test_sets()
-        self.assertIn(("Start", "1", "2", "3", "End"), test_sets["all_def_coverage"])
-        self.assertIn(("Start", "1", "2", "3", "4", "5", "6", "8", "9", "10", "End"), test_sets["all_use_coverage"])
-        self.assertIn(("Start", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "End"), test_sets["all_du_paths_coverage"])
+        # Run the program with different inputs and collect visited nodes
+        for y in [1,10]:
+            visited_nodes = simulate_program(y)
+            unique_visited_nodes.update(visited_nodes)  # Add visited nodes to the set
+
+        # Check if all required nodes are in the unique visited nodes
+        required_nodes = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}
+        self.assertTrue(required_nodes.issubset(unique_visited_nodes), 
+                        f"Missing nodes: {required_nodes - unique_visited_nodes}")
+        
+        
+    def test_all_du_paths_coverage(self):
+        # Initialize a set to collect all unique transitions (edges)
+        unique_transitions = set()
+    
+        # Run the program with different inputs and collect visited transitions
+        for y in [1, 10]:
+            visited_nodes = simulate_program(y)
+            # Collect transitions as pairs of consecutive nodes
+            transitions = [(visited_nodes[i], visited_nodes[i + 1]) for i in range(len(visited_nodes) - 1)]
+            unique_transitions.update(transitions)  # Add transitions to the set
+    
+        # Define the required transitions (edges) for all-DU-paths coverage
+        required_transitions = {
+            ("Start", "1"), ("1", "2"), ("2", "3"), ("2", "10"), ("3", "4"), ("3", "5"),
+            ("4", "10"), ("5", "6"), ("5", "7"), ("6", "5"), ("7", "8"), ("7", "9"),
+            ("8", "2"), ("9", "2"), ("10", "End")
+        }
+    
+        # Check if all required transitions are in the unique transitions
+        self.assertTrue(required_transitions.issubset(unique_transitions),
+                        f"Missing transitions: {required_transitions - unique_transitions}")
 
 if __name__ == "__main__":
     unittest.main()

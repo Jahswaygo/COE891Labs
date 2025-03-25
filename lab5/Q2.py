@@ -2,10 +2,8 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 # Define the control flow graph (CFG) for the given program
-
-
 # Simulate the program execution and track visited nodes
-def simulate_program(x, y):
+def simulate_program(y):
     visited_nodes = []
     visited_nodes.append("Start")  # Start of the program
 
@@ -75,7 +73,7 @@ def create_cfg():
         ("2", "10"),  # while false
         ("3", "4"),  # if true
         ("3", "5"),  # if false
-        ("4", "5"), 
+        ("4", "10"), # break  
         ("5", "6"),  # for loop true
         ("5", "7"),  # for loop false
         ("6", "5"),  # Loop back
@@ -118,6 +116,4 @@ def draw_cfg(cfg):
 # Main function to print necessary outputs
 if __name__ == "__main__":
     draw_cfg(create_cfg())  # Draw the CFG for the program
-    # Simulate the program with example inputs
-    print("\nSimulating Program Execution:")
-    simulate_program(50, 20)  # Example input values for x and y
+    simulate_program(1)  # Simulate the program execution with y=1
